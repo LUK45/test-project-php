@@ -23,17 +23,23 @@
 
 	<div class="form-group row">
 		<label for="name" class="col-sm-1 col-form-label">Name:</label>
-		<input name="name" input="text" id="name" placeholder="Name"/>
+		<div class="col-sm-3">
+			<input name="name" input="text" id="name" placeholder="Name" class="form-control"/>
+		</div>
 	</div>
 
 	<div class="form-group row">
 		<label for="email" class="col-sm-1 col-form-label">E-mail:</label>
-		<input name="email" input="text" id="email" placeholder="E-mail"/>
+		<div class="col-sm-3">
+			<input name="email" input="text" id="email" placeholder="E-mail" class="form-control"/>
+		</div>
 	</div>
 
 	<div class="form-group row">
 		<label for="city" class="col-sm-1 col-form-label">City:</label>
-		<input name="city" input="text" id="city" placeholder="City"/>
+		<div class="col-sm-3">
+			<input name="city" input="text" id="city" placeholder="City" class="form-control"/>
+		</div>
 	</div>
 		
 	<div class="form-group row">
