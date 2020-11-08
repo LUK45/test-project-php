@@ -41,7 +41,7 @@ class BaseModel {
 			// If result contains the field, save it and return it
 			if(isset($res[0][$field])){
 				$this->setField($field, $res[0][$field]);
-				return $this->fields[$field];
+				return htmlentities($this->fields[$field]);
 			}else return false;
 		}else return false;
 	}
@@ -87,17 +87,17 @@ class BaseModel {
 	 * Escapes values for inserting them into database
 	 * Can also handle array of value
 	 */
-	public static function escapeValue($value){
+	public static function escapeValue($value, $mysqli){
 		// Handle arrays
 		if(is_array($value)){
 			$ret = array();
-			foreach($value as $v)$ret[] = self::escapeValue($v);
+			foreach($value as $v)$ret[] = self::escapeValue($v, $mysqli);
 			return $ret;
 		}
 		// Parse null values
 		if($value === null)return 'NULL';
 		// Escape string values
-		if(!is_numeric($value))return "'".htmlentities(addslashes($value))."'"; 
+		if(!is_numeric($value))return "'".$mysqli->real_escape_string($value)."'"; 
 		return $value;
 	}
 	
@@ -124,7 +124,7 @@ class BaseModel {
 	 */
 	public static function find($db,$fields = array(),$conditions = array(),$order = array(),$limit = null){
 		// Build query	
-		$where = self::buildWhere($conditions);
+		$where = self::buildWhere($conditions, $db->mysqli);
 		$sort = self::buildOrderBy($order);
 		$limit = self::buildLimit($limit);
 		$select = self::buildSelect($fields);
@@ -156,14 +156,14 @@ class BaseModel {
 	 * Builds WHERE string based on given conditions
 	 * Can handle basic equality or IN using array as condition value
 	 */
-	private static function buildWhere($conditions){
+	private static function buildWhere($conditions, $mysqli){
 		$where = '1';
 		foreach($conditions as $key => $condition){
 			if(is_array($condition)){
-				$condString = implode(', ',self::escapeValue($condition));
+				$condString = implode(', ',self::escapeValue($condition, $mysqli));
 				$where .= ' AND `'.$key.'` IN ('.$condString.')';
 			}else
-				$where .= ' AND `'.$key.'` = '.self::escapeValue($condition);
+				$where .= ' AND `'.$key.'` = '.self::escapeValue($condition, $mysqli);
 		}	
 		return $where;
 	}
@@ -205,10 +205,10 @@ class BaseModel {
 	/**
 	 * Builds UPDATE data string from given data
 	 */
-	private static function buildUpdateData($data){
+	private static function buildUpdateData($data, $mysqli){
 		$datas = array();
 		foreach($data as $field => $value){
-			$datas[] = '`'.$field.'` = '.self::escapeValue($value);
+			$datas[] = '`'.$field.'` = '.self::escapeValue($value, $mysqli);
 		}
 		$dataString = implode(', ', $datas);	
 		return $dataString;
@@ -221,9 +221,9 @@ class BaseModel {
 	 * 	'values'  => 'values string'
 	 * );
 	 */
-	private static function buildInsertData($data){
+	private static function buildInsertData($data, $mysqli){
 		$columns = '`'.implode('`, `',array_keys($data)).'`';
-		$values = implode(',',self::escapeValue(array_values($data)));
+		$values = implode(',',self::escapeValue(array_values($data), $mysqli));
 		return array(
 			'columns' 	=> $columns,
 			'values' 	=> $values
@@ -271,7 +271,7 @@ class BaseModel {
 		if(isset($this->id)) {
 			// Overwrite current field values with given data
 			$this->setFields($data);
-			$dataString = self::buildUpdateData($this->fields);
+			$dataString = self::buildUpdateData($this->fields, $this->db->mysqli);
 			$query = "UPDATE `"."` SET ".$dataString." WHERE `id` = ".$this->id;
 			$this->db->query($query);
 		}
@@ -284,7 +284,7 @@ class BaseModel {
 	public function insert($data = array()){
 		// Overwrite current field values with given data
 		$this->setFields($data);		
-		$insertStrings = self::buildInsertData($this->fields);
+		$insertStrings = self::buildInsertData($this->fields, $this->db->mysqli);
 		$query = "INSERT INTO `".static::tableName."` (".$insertStrings['columns'].", `created_at`) VALUES (".$insertStrings['values'].", NOW())";
 		$this->db->query($query);
 		// Retrieve id of inserted record
