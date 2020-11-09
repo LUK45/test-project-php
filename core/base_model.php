@@ -31,7 +31,7 @@ class BaseModel {
 	protected function getField($field){
 		// Retrieve from memory if exists
 		if(array_key_exists($field,$this->fields)){
-			return $this->fields[$field];
+			return htmlspecialchars($this->fields[$field]);
 		}
 		// Only retrieve from DB if we know the id
 		else if(isset($this->id)){
@@ -41,7 +41,7 @@ class BaseModel {
 			// If result contains the field, save it and return it
 			if(isset($res[0][$field])){
 				$this->setField($field, $res[0][$field]);
-				return htmlentities($this->fields[$field]);
+				return htmlspecialchars($this->fields[$field]);
 			}else return false;
 		}else return false;
 	}
@@ -61,7 +61,7 @@ class BaseModel {
 			$ret = array();
 			foreach($res[0] as $field => $value){
 				$this->setField($field, $value);	
-				$ret[$field] = $value;
+				$ret[$field] = htmlspecialchars($value);
 			}
 			return $ret;
 		}else return false;
