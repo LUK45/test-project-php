@@ -1,5 +1,4 @@
 document.getElementById("city_filter").onkeyup = function() {
-
 	input = document.getElementById("city_filter");
 	filter = input.value.toUpperCase();
 	table = document.getElementById("table_users");
@@ -30,10 +29,10 @@ $(document).ready(function(){
 			success: function(response){
 				$('#add-user')[0].reset();
 				$('#success_message').fadeIn();
+				$('#table_users').find('tbody').html(response.content);
 				setTimeout(function() {
 					$('#success_message').fadeOut("slow");
-				}, 50 );
-				location.reload();
+				}, 100 );
 			},
 			error: function(response){	
 				errors = response.responseJSON.errors;

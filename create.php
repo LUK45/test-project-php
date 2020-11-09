@@ -5,7 +5,6 @@ use Respect\Validation\Validator as v;
 
 $app = require "./core/app.php";
 
-
 // Create new instance of user
 $user = new User($app->db);
 // Insert it to database with POST data
@@ -18,18 +17,19 @@ $data = array(
 );
 
 $rules = array(
-	'name' => v::stringType()->notEmpty()->setName('name'),
+	'name' => v::stringType()->notEmpty()->length(1,60)->setName('name'),
 	'email' => v::email()->notEmpty()->setName('email'),
 	'phone_number' => v::phone()->notEmpty()->setName('phone number'),
-	'city' => v::stringType()->notEmpty()->setName('city')
+	'city' => v::stringType()->notEmpty()->length(1,60)->setName('city')
 );
 
 $errors = array();
 $error = False;
+
 foreach($data as $key => $value){
 	try {
 		$rules[$key]->check($value);
-	} catch (Respect\Validation\Exceptions\Exception $e){
+	} catch (Exception $e){
 		array_push($errors, array('value' => $key, 'error' => $e->getMessage()));
 		$error = True;
 	}
@@ -37,15 +37,24 @@ foreach($data as $key => $value){
 
 if(empty($errors) && !$error){
 	$user->insert($data);
+	$users = User::find($app->db,'*');
+	
+	// Start capturing of output
+	ob_start();
+	include './views/table.php';
+	// Assign output to $content which will be rendered in layout
+	$content = ob_get_contents();
+	// Stop output capturing
+	ob_end_clean();
+
 	http_response_code(200);
 	header('Content-Type: application/json');
-	echo json_encode(array('success' => True));
+	echo json_encode(array(
+		'success' => True,
+		'content' => $content
+	));
 
 } else {
-	$response = array(
-		'success' => False, 
-		'errors' => $errors
-	);
 	http_response_code(422);
 	header('Content-Type: application/json');
 	echo json_encode(array(
