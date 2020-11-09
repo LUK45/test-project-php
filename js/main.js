@@ -32,7 +32,7 @@ $(document).ready(function(){
 				$('#table_users').find('tbody').html(response.content);
 				setTimeout(function() {
 					$('#success_message').fadeOut("slow");
-				}, 100 );
+				}, 200 );
 			},
 			error: function(response){	
 				errors = response.responseJSON.errors;
